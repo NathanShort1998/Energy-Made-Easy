@@ -1,0 +1,162 @@
+body{
+	background-color:#7DB46CFF;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.column1 {
+  float: left;
+  width: 50%;
+}
+
+.column2 {
+  float: right;
+  width: 50%;
+}
+
+.row{
+}
+
+a{
+	font-size: 30px;
+	font-color: black;
+}
+
+ul, ol{
+	list-style: none;
+	padding-left: 0;
+}
+
+p.panel_input input{
+	width:85px;
+}
+
+table, th, tr, td{
+  border: 1px solid black;
+  border-collapse: collapse;
+}
+
+#info_box{
+	background-color:#ABD6DFFF;
+	min-height:75px;
+	max-width:400px;
+	border-radius: 25px;
+	margin-left: 45px;
+	margin-top: 45px;
+	overflow:hidden;
+	border:1px solid black;
+}
+
+#inner_info_box{
+	position:relative;
+	background-color:#E7EBE0FF;
+	height:90%;
+	border-radius: 25px;
+	margin-top:5%;
+	margin-bottom:5%;
+	margin-left: 5%;
+	margin-right: 5%;
+	padding:25px;
+	border:1px solid black;
+}
+
+#account_box{
+	background-color:#ABD6DFFF;
+	min-height:75px;
+	min-width: 400px;
+	max-width:400px;
+	border-radius: 25px;
+	margin-right: 45px;
+	margin-top: 45px;
+	overflow:hidden;
+	border:1px solid black;
+	float: right;
+}
+
+#inner_account_box{
+	position:relative;
+	background-color:#E7EBE0FF;
+	height:90%;
+	border-radius: 25px;
+	margin-top:5%;
+	margin-bottom:5%;
+	margin-left: 5%;
+	margin-right: 5%;
+	padding:25px;
+	border:1px solid black;
+}
+
+#page_main{
+	margin-left: auto;
+	margin-right: auto;
+}
+
+#page_main_cont{
+	background-color:#ABD6DFFF;
+	min-height:auto;
+	min-width: 500px;
+	max-width: 85%;
+	margin-left: auto;
+	margin-right: auto;
+	margin-top: 45px;
+	border: 1px solid black;
+	border-radius: 25px;	
+}
+
+#page_main_inner_cont{
+	position:relative;
+	background-color:#E7EBE0FF;
+	border-radius: 25px;
+	min-height: 200px;
+	height: auto;
+	margin-top:2%;
+	margin-bottom:2%;
+	margin-left: 2%;
+	margin-right: 2%;
+	padding:25px;
+	border: 1px solid black;
+}
+
+#separator_div{
+	background-color:#7DB46CFF;
+	height:250px;
+	min-height:200px;
+	max-height:250px;
+}
+
+#Extended_Page_Separator_div{
+	height:300px;
+}
+
+
+#login_page_main{
+	margin-left: auto;
+	margin-right: auto;
+}
+
+#login_page_main_cont{
+	background-color:#ABD6DFFF;
+	min-height:auto;
+	min-width:200px;
+	max-width:400px;
+	margin-left: auto;
+	margin-right: auto;
+	margin-top: 45px;
+	overflow:hidden;
+	border:1px solid black;
+	border-radius: 25px;	
+}
+
+#login_page_main_inner_cont{
+	position:relative;
+	background-color:#E7EBE0FF;
+	border-radius: 25px;
+	min-height: 200px;
+	height: auto;
+	margin-top:4%;
+	margin-bottom:4%;
+	margin-left: 4%;
+	margin-right: 4%;
+	padding:25px;
+	border:1px solid black;
+}
