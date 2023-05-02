@@ -5,23 +5,55 @@
 	<head>	
 		<link rel="stylesheet" href="EME_Stylesheet.css">
 		<?php 
-		
-		function Generate_Page(){
-			$Link = pg_connect("host=localhost " . 
-							   "dbname=energy_made_easy " . 
-                               "user=natshort " .
-						       "password='_EY53\$QV_te5&~3V'");
+		function Generate_Page(){							   
+			$db = parse_ini_file("database_info.ini");
+			$host = $db['hostname'];
+			$database_name = $db['dbname'];
+			$user_name = $db['username'];
+			$dbpassword = $db['dbpassword'];
+			$Link = pg_connect("host=" . $host . " dbname=" . $database_name . " user=" . $user_name . " password='" . $dbpassword . "'");
+			
 			$Query = "";
 			$RHTML = "";
+			$NewProjectMade = false;
 			$Choice = $_POST[userchoice];
 			$Choice2 = 0;
 			
+			
+			if($_POST[delete_project_1] != ""){
+				$done = false;
+				$possible_input;
+				for($Count = 1;$done != true;$Count++){
+					$string = "delete_project_" . $Count;
+					$possible_input = $_POST[$string];
+					
+					if(!$possible_input){
+						$done = true;
+					}
+					else{
+						$Query = sprintf("DELETE FROM panel WHERE project_id = " . $possible_input . ";");
+						//$RHTML .= sprintf("<p>" . $Count . " - " . $Query . "</p>");
+						if(!($Result = pg_query($Link, $Query))){
+							$RHTML .= "<p>1 Failed: " . pg_last_error($Link) . "</p>";
+						}
+						$Query = sprintf("DELETE FROM project WHERE project_id = " . $possible_input . ";");
+						//$RHTML .= sprintf("<p>" . $Count . " - " . $Query . "</p>");
+						if(!($Result = pg_query($Link, $Query))){
+							$RHTML .= "<p>2 Failed: " . pg_last_error($Link) . "</p>";
+						}
+					}
+				}
+				
+			}
+			
 			//First, create the new Project and Panel in the database
 			if($_POST[userchoice]==0){
+				$NewProjectMade = true;
 				$Choice = $_POST[userchoice] + 1;
 				$Query = "SELECT MAX(project_id) AS max_id FROM project;";
 				if(!($Result = pg_query($Link, $Query))){
-					$RHTML .= "<p>Failed: " . pg_last_error($Link) . "</p>";
+					$RHTML .= "<p>3 Failed: " . pg_last_error($Link) . "</p>";
+					//$RHTML .= "<p>" . $Query . "</p>";
 				}
 				else{
 					$Cursor = pg_fetch_all($Result);
@@ -29,17 +61,17 @@
 						$Choice = $Row[max_id] ;
 					}
 					$Choice2 = $Choice + 1;
-					$Query = "INSERT INTO project VALUES (" . $Choice2 . ", '$_POST[username]', 'New_Project')";
+					$Query = "INSERT INTO project VALUES (" . $Choice2 . ", '$_POST[username]', 'New_Project', 0)";
 					
 					if(!($Result = pg_query($Link, $Query))){
-						$RHTML .= "<p>Failed: " . pg_last_error($Link) . "</p>";
+						$RHTML .= "<p>4 Failed: " . pg_last_error($Link) . "</p>";
 					}
 					
 					else{
 						$Query = "INSERT INTO panel VALUES (" . $Choice2 . ", 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);";
 						
 						if(!($Result = pg_query($Link, $Query))){
-							$RHTML .= "<p>Failed: " . pg_last_error($Link) . "</p>";
+							$RHTML .= "<p>5 Failed: " . pg_last_error($Link) . "</p>";
 						}
 						else{
 							$Choice++;
@@ -48,12 +80,16 @@
 				}
 			}
 			
+			else{
+				$Choice2 = $_POST[userchoice];
+			}
+			
 			//Next, get the required information from the database to display user info
 			$Query = "SELECT projectusers.email, project.username, projectusers.fname, projectusers.lname, project.project_name from project JOIN projectusers ON project.username = projectusers.username WHERE projectusers.username = '$_POST[username]' AND project.project_id = " . $Choice . ";";
-			$RHTML = "";
 			
 			if(!($Result = pg_query($Link, $Query))){
-				$RHTML .= sprintf("<p>Failed: " . pg_last_error($Link) . "</p>");
+				$RHTML .= sprintf("<p>6 Failed: " . pg_last_error($Link) . "</p>");
+				$RHTML .= sprintf("<p>" . $Query . "</p>");
 			}
 			else{
 				$Cursor = pg_fetch_all($Result);
@@ -66,19 +102,26 @@
 					/**This section makes it so the system hangs on to the user's info for the calculation page**/
 					$RHTML .= sprintf("<div id=user_info> ");
 					$RHTML .= sprintf("<p>Username: <br><input type=\"text\" id=\"username\" name=\"username\" value=\"" . $Row[username] . "\"></p>");
-					$RHTML .= sprintf("<p>Project ID: <br><input type=\"number\" id=\"userchoice\" name=\"userchoice\" value=\"$_POST[userchoice]\"></p>");
+					$RHTML .= sprintf("<p>Project ID: <br><input type=\"number\" id=\"" . $Choice2 . "\" name=\"userchoice\" value=\"" . $Choice2 . "\"></p>");
 					
-					$Query = sprintf("Select COUNT(project_id) as number_of_panels from panel WHERE project_id = $_POST[userchoice] ;");
-					if(!($Result = pg_query($Link, $Query))){
-						$RHTML .= sprintf("<p>Failed: " . pg_last_error($Link) . "</p>");
-					}
-					else{
-						$Cursor = pg_fetch_all($Result);
-						foreach($Cursor as $Row){						
-							$RHTML .= sprintf("<p>Active panels:  <br><input type=\"number\" id=\"total_panels_in_project\" name=\"total_panels_in_project\" value=\"" . $Row[number_of_panels] . "\"></p>");
+					if($NewProjectMade==false){
+						$Query = sprintf("Select COUNT(project_id) as number_of_panels from panel WHERE project_id = $_POST[userchoice];");
+						if(!($Result = pg_query($Link, $Query))){
+							$RHTML .= sprintf("<p>7 Failed: " . pg_last_error($Link) . "</p>");
 						}
+						else{
+							$Cursor = pg_fetch_all($Result);
+							foreach($Cursor as $Row){						
+								$RHTML .= sprintf("<p>Active panels:  <br><input type=\"number\" id=\"total_panels_in_project\" name=\"total_panels_in_project\" value=\"" . $Row[number_of_panels] . "\"></p>");
+							}
+						}
+						$RHTML .= sprintf("<p>Total panels to count:  <br><input type=\"number\" id=\"total_panels_to_count\" name=\"total_panels_to_count\" value=\"" . $Row[number_of_panels] . "\"></p>");
 					}
-					$RHTML .= sprintf("<p>Total panels to count:  <br><input type=\"number\" id=\"total_panels_to_count\" name=\"total_panels_to_count\" value=\"" . $Row[number_of_panels] . "\"></p>");
+					
+					else{
+						$RHTML .= sprintf("<p>Active panels:  <br><input type=\"number\" id=\"total_panels_in_project\" name=\"total_panels_in_project\" value=\"1\"></p>");
+						$RHTML .= sprintf("<p>Total panels to count:  <br><input type=\"number\" id=\"total_panels_to_count\" name=\"total_panels_to_count\" value=\"1\"></p>");
+					}
 					$RHTML .= sprintf("</div> ");
 				}
 			}
@@ -96,7 +139,8 @@
 			$Query = "SELECT project.hours_of_sun AS hours_of_sun, project.project_name AS project_name, panel.project_id AS project_id, panel.panel_id AS panel_id, panel.count AS count, panel.model_name AS model_name, panel.company_name AS company_name, panel.price AS price, panel.watts AS watts, panel.volts AS volts, panel.length AS length, panel.width AS width, panel.units_of_measure AS units_of_measure FROM project JOIN panel ON project.project_id = panel.project_id WHERE project.project_id = " . $Choice . " ORDER BY panel.panel_id;";
 			
 			if(!($Result = pg_query($Link, $Query))){
-				$RHTML .= "<p>Failed: " . pg_last_error($Link) . "</p>";
+				$RHTML .= "<p>8 Failed: " . pg_last_error($Link) . "</p>";
+				$RHTML .= "<p>" . $Query . "</p>";
 			}
 			
 			else{

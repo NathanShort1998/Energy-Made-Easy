@@ -5,16 +5,19 @@
 	<head>	
 		<link rel="stylesheet" href="EME_Stylesheet.css">
 		<?php
-		function Create_Account(){
-			$Link = pg_connect("host=localhost " . 
-							   "dbname=energy_made_easy " . 
-							   "user=natshort " .
-							   "password='_EY53\$QV_te5&~3V'");
+		function Create_Account(){						   
+			$db = parse_ini_file("database_info.ini");
+			$host = $db['hostname'];
+			$database_name = $db['dbname'];
+			$user_name = $db['username'];
+			$dbpassword = $db['dbpassword'];
+			$Link = pg_connect("host=" . $host . " dbname=" . $database_name . " user=" . $user_name . " password='" . $dbpassword . "'");
+			
 			$Query = "";
 			$RHTML = "";	
 			
 			$hashed_password = password_hash("$_POST[password]", PASSWORD_DEFAULT);
-		
+			
 			$Query .= "INSERT INTO projectusers VALUES( '$_POST[email]', '$_POST[username]', '$_POST[fname]', '$_POST[lname]', '" . $hashed_password . "');";
 			
 			if(!($Result = pg_query($Link, $Query))){
@@ -51,7 +54,7 @@
 						<label for="username">Username:</label><br>
 						<input type="text" id="username" name="username"></input><br><br>
 						
-						<label for="password">Password:</label><br>
+						<label for="text">Password:</label><br>
 						<input type="password" id="password" name="password"></input><br><br>
 						
 						<input type="submit" value="Login">
