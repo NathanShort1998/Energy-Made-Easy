@@ -5,11 +5,14 @@
 	<head>	
 		<link rel="stylesheet" href="EME_Stylesheet.css">
 		<?php
-		function Login_Verification(){
-			$Link = pg_connect("host=localhost " . 
-							   "dbname=energy_made_easy " . 
-                               "user=natshort " .
-						       "password='_EY53\$QV_te5&~3V'");
+		function Login_Verification(){							   
+			$db = parse_ini_file("database_info.ini");
+			$host = $db['hostname'];
+			$database_name = $db['dbname'];
+			$user_name = $db['username'];
+			$dbpassword = $db['dbpassword'];
+			$Link = pg_connect("host=" . $host . " dbname=" . $database_name . " user=" . $user_name . " password='" . $dbpassword . "'");
+			
 			$Query = "";
 			$RHTML = "";
 			$encrypted_password = "";
@@ -17,7 +20,7 @@
 			
 			/** If the user submits nothing for the username or password**/
 			if(($_POST[username] == '')||($_POST[password] == '')){
-					$RHTML .= "<p>Failed: You did not enter a username or a password.</p>";
+					$RHTML .= "<p>1 Failed: You did not enter a username or a password.</p>";
 					/** Redirects **/
 					/**
 						REDIRECT
@@ -27,7 +30,9 @@
 			/**Create and execute the query to see if they entered the correct password **/
 			$Query .= "Select password FROM projectusers WHERE username = '$_POST[username]'";
 			if(!($Result = pg_query($Link, $Query))){
-				$RHTML .= "<p>Failed: " . pg_last_error($Link) . "</p>";
+				$RHTML .= "<p>2 Failed: " . pg_last_error($Link) . "</p>";
+				$RHTML .= "<p>1: host=localhost dbname=energy_made_easy user=natshort password='_EY53\$QV_te5&~3V'</p>";
+				$RHTML .= "<p>2: host=" . $host . " dbname=" . $database_name . " user=" . $user_name . " password='" . $dbpassword . "' OR " . $dbpasswordtest . "</p>";
 				/** Redirects **/
 				/**
 					REDIRECT
@@ -48,15 +53,20 @@
 				if($verified != 1){
 					header("Location: https://cs.mvnu.edu/classes/csc3032/natshort/Senior_project/LoginPage.php");
 				}
+
 			}
 			return $RHTML;
 		}
 		
 		function DisplayProjects(){
-			$Link = pg_connect("host=localhost " . 
-							   "dbname=energy_made_easy " . 
-                               "user=natshort " .
-						       "password='_EY53\$QV_te5&~3V'");
+			$db = parse_ini_file("database_info.ini");
+			$host = $db['hostname'];
+			$database_name = $db['dbname'];
+			$user_name = $db['username'];
+			$dbpassword = $db['dbpassword'];
+
+			$Link = pg_connect("host=" . $host . " dbname=" . $database_name . " user=" . $user_name . " password='" . $dbpassword . "'");
+			
 			$Query = "SELECT project.project_id AS Project_ID, project.project_name AS Name, TO_CHAR(SUM(price), 'fm99G999D00') AS Project_Total FROM panel JOIN project ON project.project_id = panel.project_id WHERE username = '$_POST[username]' GROUP BY project.project_id, project.project_name ORDER BY project_id;";
 			$RHTML = "";
 			
@@ -77,7 +87,7 @@
 				
 				$RHTML .= sprintf("<ol>");
 				foreach($Cursor as $Row) {
-					$RHTML .= sprintf("<li><input type=\"radio\" name=\"userchoice\" value=\"" . $Row['project_id'] . "\"></input>\n");
+				$RHTML .= sprintf("<li id=" . $Row[project_id] . "><input type=\"radio\" name=\"userchoice\" value=\"" . $Row['project_id'] . "\"></input>\n");
 					$RHTML .= sprintf("&emsp;" . $Row['name'] . "&emsp;");
 					if ($Row['project_total'] == 0){
 						$RHTML .= sprintf("&emsp;&emsp;&emsp;$0.00&emsp;");
@@ -85,6 +95,7 @@
 					else{
 						$RHTML .= sprintf("&emsp;&emsp;&emsp;&emsp;$" . $Row['project_total'] . "&emsp;");
 					}
+					$RHTML .= sprintf("&emsp;&emsp;&emsp;<button type='button' value=\"delete\" onclick=\"RemoveProject(" . $Row['project_id'] . ")\">Delete</button>");
 					$RHTML .= sprintf("</li>");
 				}
 				$RHTML .= sprintf("<li><input type=\"radio\" name=\"userchoice\" value=\"0\">&emsp; Create New Project</input></li>");
@@ -95,10 +106,14 @@
 		}
 		
 		function GetInfo(){
-			$Link = pg_connect("host=localhost " . 
-							   "dbname=energy_made_easy " . 
-                               "user=natshort " .
-						       "password='_EY53\$QV_te5&~3V'");
+			$db = parse_ini_file("database_info.ini");
+			$host = $db['hostname'];
+			$database_name = $db['dbname'];
+			$user_name = $db['username'];
+			$dbpassword = $db['dbpassword'];
+
+			$Link = pg_connect("host=" . $host . " dbname=" . $database_name . " user=" . $user_name . " password='" . $dbpassword . "'");
+			
 			$Query = "SELECT username, fname, lname, email FROM projectusers WHERE username = '$_POST[username]';";
 			$RHTML = "";
 			
@@ -126,8 +141,29 @@
 		?>
 		
 		<script>
+			var projects_to_delete = 1;
 			function KeepForLater(){
 				document.getElementById('user_info').style.display = 'none';
+			}
+			
+			function RemoveProject(proj_id){
+				let verification_warning = "Are you sure you want to delete this project?\nThis project will be deleted perminently.";
+				if(confirm(verification_warning) == true){
+					document.getElementById(proj_id).style.display = 'none';
+					
+	
+					var project_to_drop = document.createElement("INPUT");
+					project_to_drop.setAttribute("type","number");
+					project_to_drop.setAttribute("name","delete_project_" + projects_to_delete);
+					project_to_drop.setAttribute("id","delete_project_" + projects_to_delete);
+					project_to_drop.setAttribute("value",proj_id);
+					
+					var InputBox = document.getElementById("user_info");
+					InputBox.appendChild(project_to_drop);
+					projects_to_delete++;
+				}
+				else{
+				}
 			}
 		</script>
 	</head>
